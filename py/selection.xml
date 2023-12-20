@@ -1,0 +1,8 @@
+<lcgdict>
+    <selection>
+        <class pattern="fancy::TemplateVectorFormatter<*>"/>
+        <class name="fancy::VectorFormatter"/>
+    </selection>        
+    <exclusion>
+    </exclusion>
+</lcgdict>
