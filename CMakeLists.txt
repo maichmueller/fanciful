@@ -16,8 +16,8 @@ if (DEFINED ENV{CONDA_PREFIX})
     )
     message(STATUS "Conda Active Environment: ${CONDA_ACTIVE_ENV_PREFIX}")
     set(CMAKE_INSTALL_PREFIX "${CONDA_ACTIVE_ENV}")
-    list(INSERT CMAKE_PREFIX_PATH 0 "{CONDA_ACTIVE_ENV_PREFIX}")
-    list(INSERT CMAKE_INCLUDE_PATH 0 "{CONDA_ACTIVE_ENV_PREFIX}/include")
+    list(INSERT CMAKE_PREFIX_PATH 0 "${CONDA_ACTIVE_ENV_PREFIX}")
+    list(INSERT CMAKE_INCLUDE_PATH 0 "${CONDA_ACTIVE_ENV_PREFIX}/include")
     #include_directories($ENV{CONDA_PREFIX}/include)
     list(INSERT CMAKE_LIBRARY_PATH 0 "${CONDA_ACTIVE_ENV_PREFIX}/lib")
 endif ()
@@ -81,15 +81,20 @@ include(cmake/utilities.cmake)
 # the genreflex selection XML anyhow. Also, I think this is now the recommended /
 # more modern way anyhow? Code was modified from the versions cppyy distributes.
 #
-file(GLOB HEADERS "${PROJECT_SRC_DIR}/*.hpp")
-
+set(
+        BINDING_HEADERS
+        formatter.hpp
+        fancy.hpp
+)
+list(TRANSFORM BINDING_HEADERS PREPEND "${PROJECT_SRC_DIR}/libfancy/include/fancy")
+message("Binding headers are: ${BINDING_HEADERS}")
 cppyy_add_bindings(
         "fancy" "${PROJECT_VERSION}" "Michael Aichmueller" "m.aichmueller@gmail.com"
         LICENSE "MIT"
         LANGUAGE_STANDARD "20"
         SELECTION_XML ${CMAKE_SOURCE_DIR}/py/selection.xml
         INTERFACE_FILE ${CMAKE_SOURCE_DIR}/py/interface.hpp
-        HEADERS ${HEADERS}
+        HEADERS ${BINDING_HEADERS}
         INCLUDE_DIRS $<TARGET_PROPERTY:fancy_shared,INCLUDE_DIRECTORIES> $<TARGET_PROPERTY:fmt::fmt,INTERFACE_INCLUDE_DIRECTORIES>
         LINK_LIBRARIES fancy_shared fmt::fmt
         NAMESPACES fancy
