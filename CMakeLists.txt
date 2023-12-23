@@ -95,7 +95,7 @@ cppyy_add_bindings(
         SELECTION_XML ${CMAKE_SOURCE_DIR}/py/selection.xml
         INTERFACE_FILE ${CMAKE_SOURCE_DIR}/py/interface.hpp
         HEADERS ${BINDING_HEADERS}
-        INCLUDE_DIRS $<TARGET_PROPERTY:fancy_shared,INCLUDE_DIRECTORIES>
+        INCLUDE_DIRS $<TARGET_PROPERTY:fancy_shared,INTERFACE_INCLUDE_DIRECTORIES>
         LINK_LIBRARIES fancy_shared fmt::fmt
         NAMESPACES fancy
         README_FILE README.md
