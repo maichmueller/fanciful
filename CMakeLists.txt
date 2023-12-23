@@ -86,7 +86,7 @@ set(
         formatter.hpp
         fancy.hpp
 )
-list(TRANSFORM BINDING_HEADERS PREPEND "${PROJECT_SRC_DIR}/libfancy/include/fancy")
+list(TRANSFORM BINDING_HEADERS PREPEND "${PROJECT_SRC_DIR}/libfancy/include/fancy/")
 message("Binding headers are: ${BINDING_HEADERS}")
 cppyy_add_bindings(
         "fancy" "${PROJECT_VERSION}" "Michael Aichmueller" "m.aichmueller@gmail.com"
