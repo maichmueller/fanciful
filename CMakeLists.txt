@@ -15,11 +15,20 @@ if (DEFINED ENV{CONDA_PREFIX})
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     message(STATUS "Conda Active Environment: ${CONDA_ACTIVE_ENV_PREFIX}")
-    set(CMAKE_INSTALL_PREFIX "${CONDA_ACTIVE_ENV}")
+    set(CMAKE_INSTALL_PREFIX "${CONDA_ACTIVE_ENV_PREFIX}")
     list(INSERT CMAKE_PREFIX_PATH 0 "${CONDA_ACTIVE_ENV_PREFIX}")
     list(INSERT CMAKE_INCLUDE_PATH 0 "${CONDA_ACTIVE_ENV_PREFIX}/include")
     #include_directories($ENV{CONDA_PREFIX}/include)
     list(INSERT CMAKE_LIBRARY_PATH 0 "${CONDA_ACTIVE_ENV_PREFIX}/lib")
+
+    execute_process(
+            COMMAND python -c "import platform; print('.'.join(platform.python_version_tuple()[:2]))"
+            OUTPUT_VARIABLE PYTHON_VERSION_MAJOR_MINOR
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    list(INSERT CMAKE_MODULE_PATH 0 ${CONDA_ACTIVE_ENV_PREFIX}/lib/python${PYTHON_VERSION_MAJOR_MINOR}/site-packages/cppyy_backend/cmake)
+    set(CPPYY_MODULE_PATH ${CONDA_ACTIVE_ENV_PREFIX}/lib/python${PYTHON_VERSION_MAJOR_MINOR}/site-packages/cppyy_backend/cmake)
 endif ()
 
 set(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -31,8 +40,7 @@ set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 #
 message("EFFECTIVE CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 message("EFFECTIVE CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
-list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
-find_package(Cppyy)
+find_package(Cppyy REQUIRED)
 
 #
 # Make the default build us c++20 and "RELEASE" (-O3)
@@ -88,18 +96,30 @@ set(
 )
 list(TRANSFORM BINDING_HEADERS PREPEND "${PROJECT_SRC_DIR}/libfancy/include/fancy/")
 message("Binding headers are: ${BINDING_HEADERS}")
+
 cppyy_add_bindings(
         "fancy" "${PROJECT_VERSION}" "Michael Aichmueller" "m.aichmueller@gmail.com"
-        LICENSE "MIT"
         LANGUAGE_STANDARD "20"
-        SELECTION_XML ${CMAKE_SOURCE_DIR}/py/selection.xml
-        INTERFACE_FILE ${CMAKE_SOURCE_DIR}/py/interface.hpp
-        HEADERS ${BINDING_HEADERS}
-        INCLUDE_DIRS $<TARGET_PROPERTY:fancy_shared,INTERFACE_INCLUDE_DIRECTORIES>
+        LINKDEFS ${CMAKE_SOURCE_DIR}/py/linkdef.hpp
+        GENERATE_OPTIONS "-D__PIC__;-Wno-macro-redefined"
+        INCLUDE_DIRS $<TARGET_PROPERTY:fancy_shared,INTERFACE_INCLUDE_DIRECTORIES> $<TARGET_PROPERTY:fmt::fmt,INTERFACE_INCLUDE_DIRECTORIES>
         LINK_LIBRARIES fancy_shared fmt::fmt
-        NAMESPACES fancy
-        README_FILE README.md
+        H_DIRS $<TARGET_PROPERTY:fancy_shared,INTERFACE_INCLUDE_DIRECTORIES>
+        H_FILES ${BINDING_HEADERS}
 )
+
+#cppyy_add_bindings(
+#        "fancy" "${PROJECT_VERSION}" "Michael Aichmueller" "m.aichmueller@gmail.com"
+#        LICENSE "MIT"
+#        LANGUAGE_STANDARD "20"
+#        SELECTION_XML ${CMAKE_SOURCE_DIR}/py/selection.xml
+#        INTERFACE_FILE ${CMAKE_SOURCE_DIR}/py/interface.hpp
+#        HEADERS ${BINDING_HEADERS}
+#        INCLUDE_DIRS $<TARGET_PROPERTY:fancy_shared,INTERFACE_INCLUDE_DIRECTORIES>
+#        LINK_LIBRARIES fancy_shared fmt::fmt
+#        NAMESPACES fancy
+#        README_FILE README.md
+#)
 
 print_target_properties(fancy_shared)
 print_target_properties(fmt::fmt)
