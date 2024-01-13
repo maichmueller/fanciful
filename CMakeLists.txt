@@ -6,6 +6,8 @@ project(fancy_cmake_build
         HOMEPAGE_URL "https://github.com/maichmueller/fanciful"
         DESCRIPTION "A simple CMake based example library with Conan usage.")
 
+option(USE_CONAN "Download dependencies via Conan." ON)
+
 if (DEFINED ENV{CONDA_PREFIX})
     message(STATUS "Building in a conda environment.")
     set(CONDA_ACTIVE TRUE)
@@ -29,6 +31,19 @@ if (DEFINED ENV{CONDA_PREFIX})
 
     list(INSERT CMAKE_MODULE_PATH 0 ${CONDA_ACTIVE_ENV_PREFIX}/lib/python${PYTHON_VERSION_MAJOR_MINOR}/site-packages/cppyy_backend/cmake)
     set(CPPYY_MODULE_PATH ${CONDA_ACTIVE_ENV_PREFIX}/lib/python${PYTHON_VERSION_MAJOR_MINOR}/site-packages/cppyy_backend/cmake)
+endif ()
+
+if(NOT USE_CONAN)
+    # add dependencies with CPM
+    include(cmake/CPM.cmake)
+    CPMAddPackage(
+            NAME fmt          # The unique name of the dependency (should be the exported target's name)
+            GIT_TAG 10.1.1      # The minimum version of the dependency (optional, defaults to 0)
+            SYSTEM TRUE
+            OPTIONS BUILD_SHARED_LIBS ON      # Configuration options passed to the dependency (optional)
+            DOWNLOAD_ONLY FALSE       # If set, the project is downloaded, but not configured (optional)
+            GITHUB_REPOSITORY fmtlib/fmt
+)
 endif ()
 
 set(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -126,8 +141,13 @@ print_target_properties(fmt::fmt)
 print_target_properties(fancyCppyy)
 
 install(TARGETS fancy_shared
+        RUNTIME_DEPENDENCY_SET libftmt
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fancy
 )
+install(RUNTIME_DEPENDENCY_SET libfmt
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
 
 install(CODE "execute_process(COMMAND pip install ${PY_WHEEL_FILE})")
