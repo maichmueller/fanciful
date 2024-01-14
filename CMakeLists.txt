@@ -17,11 +17,12 @@ if (DEFINED ENV{CONDA_PREFIX})
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     message(STATUS "Conda Active Environment: ${CONDA_ACTIVE_ENV_PREFIX}")
-    set(CMAKE_INSTALL_PREFIX "${CONDA_ACTIVE_ENV_PREFIX}")
-    list(INSERT CMAKE_PREFIX_PATH 0 "${CONDA_ACTIVE_ENV_PREFIX}")
-    list(INSERT CMAKE_INCLUDE_PATH 0 "${CONDA_ACTIVE_ENV_PREFIX}/include")
-    #include_directories($ENV{CONDA_PREFIX}/include)
-    list(INSERT CMAKE_LIBRARY_PATH 0 "${CONDA_ACTIVE_ENV_PREFIX}/lib")
+    message(STATUS "Conda Prefix: $ENV{CONDA_PREFIX}")
+    message(STATUS "Ensure that Conda Active Environment and Conda Prefix match!")
+    set(CMAKE_INSTALL_PREFIX "$ENV{CONDA_PREFIX}")
+    list(INSERT CMAKE_PREFIX_PATH 0 "$ENV{CONDA_PREFIX}")
+    list(INSERT CMAKE_INCLUDE_PATH 0 "$ENV{CONDA_PREFIX}/include")
+    list(INSERT CMAKE_LIBRARY_PATH 0 "$ENV{CONDA_PREFIX}/lib")
 
     execute_process(
             COMMAND python -c "import platform; print('.'.join(platform.python_version_tuple()[:2]))"
@@ -29,8 +30,8 @@ if (DEFINED ENV{CONDA_PREFIX})
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 
-    list(INSERT CMAKE_MODULE_PATH 0 ${CONDA_ACTIVE_ENV_PREFIX}/lib/python${PYTHON_VERSION_MAJOR_MINOR}/site-packages/cppyy_backend/cmake)
-    set(CPPYY_MODULE_PATH ${CONDA_ACTIVE_ENV_PREFIX}/lib/python${PYTHON_VERSION_MAJOR_MINOR}/site-packages/cppyy_backend/cmake)
+    set(CPPYY_MODULE_PATH $ENV{CONDA_PREFIX}/lib/python${PYTHON_VERSION_MAJOR_MINOR}/site-packages/cppyy_backend/cmake)
+    list(INSERT CMAKE_MODULE_PATH 0 ${CPPYY_MODULE_PATH})
 endif ()
 
 if(NOT USE_CONAN)
@@ -136,9 +137,9 @@ cppyy_add_bindings(
 #        README_FILE README.md
 #)
 
-print_target_properties(fancy_shared)
-print_target_properties(fmt::fmt)
-print_target_properties(fancyCppyy)
+#print_target_properties(fancy_shared)
+#print_target_properties(fmt::fmt)
+#print_target_properties(fancyCppyy)
 
 install(TARGETS fancy_shared
         RUNTIME_DEPENDENCY_SET libftmt

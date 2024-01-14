@@ -1,6 +1,8 @@
 #!/bin/bash
 
 use_conan=false
+cmake_build_folder=build
+
 
 # Loop through all arguments
 while [[ $# -gt 0 ]]; do
@@ -8,18 +10,15 @@ while [[ $# -gt 0 ]]; do
     "--conan")
       use_conan=true
       ;;
+    "--folder="*)
+      cmake_build_folder="${1#*=}"
+      ;;
     # Add more cases for other options if needed
   esac
   shift # Move to the next argument
 done
 
 script_dir=$(dirname $0)
-
-if [[ -n $1 ]]; then
-  cmake_build_folder=$1
-else
-  cmake_build_folder=build
-fi
 
 if [ "$use_conan" = true ]; then
   conan install . -of="$script_dir/$cmake_build_folder/conan" --profile:host=default --profile:build=default --build=missing -g CMakeDeps
